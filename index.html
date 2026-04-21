@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: Arial, sans-serif; }
-    /* 북마클릿 버튼 애니메이션 */
     .bookmarklet-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -23,14 +22,13 @@
       <p class="text-slate-500 mt-4 text-lg">장바구니 체크 상품을 한 번의 클릭으로 견적서로 만드세요.</p>
     </header>
 
-    <!-- 설치 섹션 -->
     <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 mb-8 text-center">
       <h2 class="text-xl font-bold mb-4 flex items-center justify-center gap-2">
         <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
         북마크 설치하기
       </h2>
       <p class="text-slate-600 mb-6">아래 파란색 버튼을 마우스로 잡고 <br><strong class="text-slate-900">상단 북마크바(즐겨찾기 바)</strong>로 드래그하여 놓으세요.</p>
-      
+
       <div class="py-4">
         <a
           id="bookmarklet-link"
@@ -41,18 +39,17 @@
           쿠팡견적서
         </a>
       </div>
-      
+
       <div class="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
         <p class="text-sm text-amber-700">
           <strong>팁:</strong> 북마크바가 안 보인다면 <br class="md:hidden">
-          <kbd class="bg-white px-2 py-1 rounded shadow-sm text-xs font-bold mx-1">Ctrl</kbd> + 
-          <kbd class="bg-white px-2 py-1 rounded shadow-sm text-xs font-bold mx-1">Shift</kbd> + 
+          <kbd class="bg-white px-2 py-1 rounded shadow-sm text-xs font-bold mx-1">Ctrl</kbd> +
+          <kbd class="bg-white px-2 py-1 rounded shadow-sm text-xs font-bold mx-1">Shift</kbd> +
           <kbd class="bg-white px-2 py-1 rounded shadow-sm text-xs font-bold mx-1">B</kbd> 를 눌러보세요.
         </p>
       </div>
     </div>
 
-    <!-- 사용 방법 섹션 (사용자 원문 유지) -->
     <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
       <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
         <span class="bg-slate-100 text-slate-600 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
@@ -60,10 +57,10 @@
       </h2>
       <ol class="list-decimal ml-5 text-sm text-slate-700 space-y-2">
         <li>쿠팡 장바구니에서 상품을 체크합니다.</li>
-        <li>저장한 북마크(즐겨찾기) 클릭합니다.</li>
-        <li>새 창이 열리면 체크 상품과 견적서가 자동으로 채워집니다.</li>
-        <li>단! 금액이 다를 경우 직접 수정해서 견적 미리 보기 버튼을 눌러주세요.</li>
-        <li>배송비도 추가한 후 견적 미리 보기 버튼을 눌러주시고 주문하려는 금액과 견적 금액을 확인해 주세요. .</li> 
+        <li>저장한 북마크(즐겨찾기)를 클릭합니다.</li>
+        <li>새 창이 열리면 체크 상품이 자동으로 채워집니다.</li>
+        <li>금액이 다를 경우 직접 수정해서 견적서를 확인해 주세요.</li>
+        <li>배송비를 추가한 뒤 최종 금액을 확인해 주세요.</li>
       </ol>
     </div>
 
@@ -74,7 +71,7 @@
 
   <script>
     const APP_URL = window.location.href.split('?')[0];
-    const BOOKMARKLET = `javascript:(()=>{try{const APP_URL='${APP_URL}';const APP_ORIGIN=new URL(APP_URL).origin;const CHECKBOXES=[...document.querySelectorAll('input[type="checkbox"]')].filter(cb=>cb.checked);const out=[];function cleanLines(text){return (text||'').split('\\n').map(v=>v.trim()).filter(Boolean);}function getText(el){return (el?.innerText || el?.textContent || '').replace(/\\s+/g,' ').trim();}function collectPriceNodes(root){const nodes=[root, ...root.querySelectorAll('*')];const list=[];nodes.forEach(el=>{const text=getText(el);if(!text || text.length>120) return;const matches=[...text.matchAll(/([0-9][0-9,]{2,})\\s*원/g)];matches.forEach(m=>{const price=parseInt(m[1].replace(/,/g,''),10);if(price >= 100) list.push({el,text,price});});});return list;}function pickName(lines){return lines.find(l=>l.length>6 && !/원|수량|삭제|선택|무료/.test(l)) || null;}CHECKBOXES.forEach(cb=>{let el=cb.parentElement;let depth=0;while(el && depth<8){const lines=cleanLines(getText(el));const prices=collectPriceNodes(el);const name=pickName(lines);if(prices.length && name){out.push({name, price:prices[0].price, qty:1});break;}el=el.parentElement;depth++;}});if(!out.length){alert('체크된 상품을 찾지 못했습니다.');return;}const newWin=window.open(APP_URL,'_blank');const timer=setInterval(()=>{newWin.postMessage({type:'COUPANG_CART_ITEMS',payload:out}, APP_ORIGIN);}, 1000);window.addEventListener('message', (e)=>{if(e.data.type==='QUOTE_APP_READY') clearInterval(timer);});}catch(e){alert(e.message);}})();`;
+    const BOOKMARKLET = `javascript:(()=>{try{const APP_URL='${APP_URL}';const APP_ORIGIN=new URL(APP_URL).origin;const CHECKBOXES=[...document.querySelectorAll('input[type="checkbox"]')].filter(cb=>cb.checked&&cb.offsetParent!==null);const items=[];const seen=new Set();function text(v){return String(v||'').replace(/\\s+/g,' ').trim()}function getRow(cb){let el=cb.parentElement;for(let i=0;i<12&&el;i++,el=el.parentElement){if(el.querySelector('input.cart-quantity-input')&&el.querySelector('[data-component-id="price-area"]'))return el}return null}function getName(row,cb){const title=text(cb.getAttribute('title'));if(title)return title;const byName=row.querySelector('#name span.twc-text-custom-black')||row.querySelector('#name a span.twc-text-custom-black')||row.querySelector('span.twc-text-custom-black');return text(byName?.innerText)}function getQty(row){const qtyInput=row.querySelector('input.cart-quantity-input');if(qtyInput){const n=parseInt(String(qtyInput.value||'').replace(/[^\\d]/g,''),10);if(n>0)return n}return 1}function getDisplayedTotalPrice(row){const priceArea=row.querySelector('[data-component-id="price-area"]');if(!priceArea)return 0;const preferred=[...priceArea.querySelectorAll('span')].map(el=>({cls:String(el.className||''),txt:text(el.innerText)})).filter(v=>v.cls.includes('twc-text-[20px]/[27px]')&&v.cls.includes('twc-font-bold')&&/[0-9][0-9,]*/.test(v.txt));if(preferred.length){const n=parseInt((preferred[0].txt.match(/[0-9][0-9,]*/)||['0'])[0].replace(/,/g,''),10);if(n>0)return n}const nums=[];const lines=(priceArea.innerText||'').split('\\n').map(v=>v.trim()).filter(Boolean);lines.forEach(line=>{if(/100g당|100ml당|10g당|1개당|개당|당\\s*\\d|배송비|총상품금액|총 주문금액|결제예정금액|합계|카드할인|무이자/i.test(line))return;[...line.matchAll(/([0-9][0-9,]{2,})\\s*원/g)].forEach(m=>{const n=parseInt(m[1].replace(/,/g,''),10);if(n>99)nums.push(n)})});return nums.length?Math.min(...nums):0}CHECKBOXES.forEach(cb=>{const row=getRow(cb);if(!row)return;const name=getName(row,cb);if(!name)return;const qty=getQty(row);const totalPrice=getDisplayedTotalPrice(row);const unitPrice=qty>0?Math.round(totalPrice/qty):totalPrice;const key=name+'__'+qty;if(seen.has(key))return;seen.add(key);items.push({name,price:unitPrice||0,qty,checked:true})});if(!items.length){alert('체크된 상품을 찾지 못했습니다.');return}const newWin=window.open(APP_URL,'_blank');if(!newWin){alert('새 창이 차단되었습니다. 팝업 차단을 해제해 주세요.');return}let sent=false;const startAt=Date.now();function sendData(){if(sent)return;sent=true;newWin.postMessage({type:'COUPANG_CART_ITEMS',payload:items},APP_ORIGIN)}const timer=setInterval(()=>{if(Date.now()-startAt>7000){clearInterval(timer);sendData();window.removeEventListener('message',onMessage);return}try{newWin.postMessage({type:'PING'},APP_ORIGIN)}catch(e){}},400);function onMessage(event){if(event.origin!==APP_ORIGIN)return;if(event.source!==newWin)return;if(event.data&&event.data.type==='QUOTE_APP_READY'){clearInterval(timer);sendData();window.removeEventListener('message',onMessage)}}window.addEventListener('message',onMessage)}catch(e){alert('북마클릿 실행 중 오류: '+e.message)}})();`;
 
     document.getElementById('bookmarklet-link').setAttribute('href', BOOKMARKLET);
   </script>
